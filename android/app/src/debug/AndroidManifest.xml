@@ -4,4 +4,12 @@
          to allow setting breakpoints, to provide hot reload, etc.
     -->
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!--    Allows the app to show notifications (Android 13+).-->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!--    Lets the app run code after the device restarts.-->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <!--    Enables the app to make the device vibrate.-->
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <!--     Lets the app read or change Do Not Disturb settings.-->
+    <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
 </manifest>

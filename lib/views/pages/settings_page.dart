@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutterapp/views/pages/expanded_flexible_page.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:timezone/data/latest.dart';
+import 'package:timezone/timezone.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key, required this.title});
@@ -17,6 +20,90 @@ class _SettingsPageState extends State<SettingsPage> {
   double sliderValue = 0.0;
   String? menuItem = 'e1';
 
+  //https://www.fluttermapp.com/articles/local-notifications
+  final FlutterLocalNotificationsPlugin notificationsPlugin =
+      FlutterLocalNotificationsPlugin();
+
+  @override
+  void initState() {
+    init().then((_) {
+      showInstantNotification(id: 0, title: 'Hello', body: 'It works!');
+    });
+    super.initState();
+  }
+
+  Future<void> init() async {
+    initializeTimeZones();
+
+
+    // try {
+    //   final String currentTimeZone = await FlutterTimezone.getLocalTimezone();
+    //   setLocalLocation(getLocation(currentTimeZone));
+    // } catch {
+    //   setLocalLocation(getLocation('Africa/Nairobi'));
+    // }
+
+    setLocalLocation(getLocation('Africa/Nairobi'));
+
+    const androidSettings = AndroidInitializationSettings(
+      '@mipmap/launcher_icon',
+    );
+
+    const DarwinInitializationSettings iosSettings =
+        DarwinInitializationSettings();
+
+    const InitializationSettings initializationSettings =
+        InitializationSettings(android: androidSettings, iOS: iosSettings);
+
+    await notificationsPlugin.initialize(initializationSettings);
+  }
+
+  Future<void> showInstantNotification({
+    required int id,
+    required String title,
+    required String body,
+  }) async {
+    await notificationsPlugin.show(
+      id,
+      title,
+      body,
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'instant_notification_channel_id',
+          'Instant notifications',
+          channelDescription: 'Instant notifications channel',
+          importance: Importance.max,
+          priority: Priority.high,
+        ),
+        iOS: DarwinNotificationDetails(),
+      ),
+    );
+  }
+
+  Future<void> scheduleReminder({
+    required int id,
+    required String title,
+    required String body,
+}) async {
+    TZDateTime now = TZDateTime.now(local);
+    TZDateTime scheduledDate = now.add(Duration(seconds: 3));
+
+    await notificationsPlugin.zonedSchedule(id, title, body, scheduledDate,
+        const NotificationDetails(
+          android: AndroidNotificationDetails(
+              'daily_reminder_channel_id',
+              'Daily reminders',
+            channelDescription: 'Reminder to complete daily tasks',
+            importance: Importance.max,
+            priority: Priority.high,
+          ),
+          iOS: DarwinNotificationDetails(),
+        ),
+        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+      matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -32,6 +119,26 @@ class _SettingsPageState extends State<SettingsPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              FilledButton(
+                onPressed: () {
+                  showInstantNotification(
+                    id: 1,
+                    title: 'Instant notif',
+                    body: 'Hell! you there?',
+                  );
+                },
+                child: Text('Show Instant alert'),
+              ),
+              FilledButton(
+                onPressed: () {
+                  scheduleReminder(
+                    id: 1,
+                    title: 'Schedule notif',
+                    body: 'Hey! you there? has scheduled this',
+                  );
+                },
+                child: Text('Show scheduled alert'),
+              ),
               DropdownButton(
                 value: menuItem,
                 items: [
